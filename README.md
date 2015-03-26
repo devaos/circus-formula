@@ -39,11 +39,11 @@ Every other configuration option is totally optional.  Default values are docume
 [configuration docs](http://circus.readthedocs.org/en/latest/for-ops/configuration/)
 for more info.
 
-## circus:ini
+## `circus:ini`
 
 This pillar contains name=value pairs that go into the `[circus]` stanza of `circus.ini`
 
-Example pillar
+#### Example pillar
 
 ```yaml
 circus:
@@ -52,7 +52,7 @@ circus:
     loglevel: DEBUG
 ```
 
-Resulting `circus.ini`
+#### Resulting stanza `circus.ini`
 
 ```ini
 [circus]
@@ -60,21 +60,28 @@ check_delay = 5
 loglevel = DEBUG
 ```
 
-## circus:env
+## `circus:env`
 
 Global environment variables to be set for all watchers.
 
-Example pillar
+#### Example pillar
 
 ```yaml
 circus:
   env:
     FOO: foo
-    BAR: bar
     TASTY: lettuce
 ```
 
-## circus:service
+#### Resulting stanza in `circus.ini`
+
+```ini
+[env]
+FOO = foo
+TASTY = lettuce
+```
+
+## `circus:service`
 
 This contains configuration specific to running the circus service on the system.
 
@@ -90,7 +97,7 @@ As usual on Unix, `SIGKILL` causes the application to absolutely shut down, and 
 This is used during system shutdown when we're trying to stop the service, and also during any restarts
 you may invoke via `/etc/init.d/circus restart`.
 
-Example pillar
+#### Example pillar
 
 ```yaml
 circus:
@@ -98,11 +105,11 @@ circus:
     max_shutdown_time: 30
 ```
 
-## circus:plugin
+## `circus:plugin`
 
 List all plugins to be loaded during startup and reload.
 
-Example pillar
+#### Example pillar
 
 ```yaml
 circus:
@@ -114,12 +121,22 @@ circus:
       sample_rate: 1.0
       application_name: example
 ```
+#### Resulting stanza in `conf.d/plugin_statsd.ini`
 
-## circus:socket
+```ini
+[plugin:statsd]
+use = circus.plugins.statsd.StatsdEmitter
+host = localhost
+port = 8125
+sample_rate = 1.0
+application_name = example
+```
+
+## `circus:socket`
 
 List all sockets that Circus should bind to and listen on.
 
-Example pillar
+#### Example pillar
 
 ```yaml
 circus:
@@ -128,7 +145,15 @@ circus:
     port: 8080
 ```
 
-## circus:watcher
+#### Resulting stanza in `conf.d/socket_mysocket.ini`
+
+```ini
+[socket:mysocket]
+host = localhost
+port = 8080
+```
+
+## `circus:watcher`
 
 List all watchers that Circus should start.
 
@@ -137,7 +162,7 @@ that should be set for this watcher only.
 
 With the exception of the `env` key, all other keys directly relate to a Circus configuration directive.
 
-Example pillar
+#### Example pillar
 
 ```yaml
 circus:
@@ -157,4 +182,22 @@ circus:
       stderr_stream:
         class: FileStream
         filename: error.log
+```
+
+#### Resulting stanzas in `conf.d/watcher_myprogram.ini`
+
+```ini
+[watcher:myprogram]
+cmd = python myprogram.py
+numprocesses = 5
+hooks.before_start = my.hooks.control_redis
+stdout_stream.class = FileStream
+stdout_stream.filename = test.log
+stdout_stream.max_bytes = 1073741824
+stdout_stream.backup_count = 5
+stderr_stream.class = FileStream
+stderr_stream.filename = error.log
+
+[env:myprogram]
+PROGRAM_ENV = yes
 ```
