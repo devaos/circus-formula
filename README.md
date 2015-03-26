@@ -18,7 +18,7 @@ Install Circus and its dependencies, set up config files and start the service.
 Configuration
 =============
 
-[example.pillar](example.pillar) shows all the possible options you can set.
+[pillar.example](pillar.example) shows all the possible options you can set.
 
 Options are based directly on the
 [Circus Configuration File Specification](http://circus.readthedocs.org/en/latest/for-ops/configuration/)
