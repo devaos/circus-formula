@@ -1,0 +1,55 @@
+# All pillar items here are totally optional
+#
+# However for circus to actually start your programs, you must have the
+# circus:watcher:* dicts configured.
+
+circus:
+
+    # See http://circus.readthedocs.org/en/latest/for-ops/configuration/
+    # for a list of all ini options.
+
+    ini:
+        check_delay: 5
+        endpoint: tcp://127.0.0.1:5555
+        pubsub_endpoint: tcp://127.0.0.1:5556
+        loglevel: DEBUG
+        umask: 002
+
+    service:
+        max_shutdown_time: 10
+
+    plugin:
+        statsd:
+            use: circus.plugins.statsd.StatsdEmitter
+            host: localhost
+            port: 8125
+            sample_rate: 1.0
+            application_name: example
+
+    env:
+        CIRCUS_EXAMPLE: on
+
+    socket:
+        mysocket:
+            host: localhost
+            port: 8080
+
+    watcher:
+        program:
+            cmd: python myprogram.py
+            numprocesses: 5
+            env:
+                PROGRAM_ENV: yes
+            hooks:
+                before_start: my.hooks.control_redis
+            stdout_stream:
+                class: FileStream
+                filename: test.log
+                max_bytes: 1073741824
+                backup_count: 5
+            stderr_stream:
+                class: FileStream
+                filename: error.log
+        anotherprogram:
+            cmd: another_program
+            numprocesses: 2

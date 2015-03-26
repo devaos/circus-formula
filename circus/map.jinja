@@ -1,0 +1,4 @@
+{%- from "circus/defaults.yaml" import defaults with context -%}
+{%- set circus = salt['grains.filter_by'](defaults,
+    merge=salt['pillar.get']('circus:lookup'),
+    default='Debian') -%}

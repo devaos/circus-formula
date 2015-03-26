@@ -1,0 +1,91 @@
+#!/bin/sh
+{%- from "circus/map.jinja" import circus with context %}
+
+### BEGIN INIT INFO
+# Provides:          circus
+# Required-Start:    $local_fs $remote_fs $network $syslog
+# Required-Stop:     $local_fs $remote_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: circus process manager
+# Description:       manages circusd using start-stop-daemon
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON={{ circus.bin_dir }}/circusd
+DAEMON_OPTS={{ circus.conf_dir }}/circus.ini
+NAME=circusd
+DESC=circus
+
+# Include defaults if available
+if [ -f /etc/default/$NAME ]; then
+	. /etc/default/$NAME
+fi
+
+test -x $DAEMON || exit 0
+
+. /lib/lsb/init-functions
+
+start() {
+    echo -n "Starting $DESC: "
+    # Check if the ULIMIT is set in /etc/default/circus
+    if [ -n "$ULIMIT" ]; then
+        # Set the ulimits
+        ulimit $ULIMIT
+    fi
+    start-stop-daemon --start --quiet --pidfile {{ circus.pid_file }} \
+        --make-pidfile --background \
+        --name $NAME --startas $DAEMON -- $DAEMON_OPTS || exit $?
+    echo "."
+}
+
+stop() {
+    echo -n "Stopping $DESC: "
+    start-stop-daemon --stop --quiet --pidfile {{ circus.pid_file }} \
+        --retry {{ salt['pillar.get']('circus:service:max_shutdown_time', 10) }} \
+        --name $NAME --startas $DAEMON --oknodo || exit 1
+    echo "."
+}
+
+status() {
+    status_of_proc -p {{ circus.pid_file }} "$DAEMON" $NAME || return $?
+    {{ circus.bin_dir }}/circusctl status || return $?
+    return 0
+}
+
+
+case "$1" in
+	start)
+    	start ;;
+
+	stop)
+		stop ;;
+
+	restart)
+		echo -n "Restarting $DESC: "
+		stop
+		sleep 1
+		start
+		;;
+
+	reload|force-reload)
+		echo -n "Reloading $DESC configuration: "
+		if status; then
+    		{{ circus.bin_dir }}/circusctl reloadconfig || exit $?
+    	else
+    	    start
+    	fi
+		echo "."
+		;;
+
+	status)
+	    status || exit $?
+		;;
+
+	*)
+		echo "Usage: $DESC {start|stop|restart|reload|force-reload|status}" >&2
+		exit 1
+		;;
+esac
+
+exit 0

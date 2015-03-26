@@ -1,0 +1,8 @@
+{% from "circus/map.jinja" import circus with context -%}
+{% load_yaml as ini %}
+
+include_dir: conf.d
+pidfile: {{ circus.pid_file }}
+logoutput: {{ circus.log_file }}
+
+{% endload %}

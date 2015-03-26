@@ -1,0 +1,23 @@
+{%- from "circus/ini.yaml" import ini with context -%}
+{%- set circus_ini = salt['pillar.get']('circus:ini', default=ini, merge=True) -%}
+
+{#- ######################################################################
+ # Main circus configuration
+ ###################################################################### -#}
+
+[circus]
+{%- for name, value in circus_ini.iteritems() %}
+{{ name }} = {{ value }}
+{%- endfor %}
+
+{#- ######################################################################
+ # Global Environment Variables
+ ####################################################################### #}
+
+{%- if salt['pillar.get']('circus:env', False) %}
+
+[env]
+{%- for name, value in salt['pillar.get']('circus:env', {}).iteritems() %}
+{{ name }} = {{ value }}
+{%- endfor %}
+{%- endif %}

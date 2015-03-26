@@ -1,0 +1,9 @@
+{% load_yaml as defaults %}
+
+Debian:
+  bin_dir: /usr/local/bin
+  conf_dir: /etc/circus
+  log_file: /var/log/circus.log
+  pid_file: /var/run/circus.pid
+
+{% endload %}

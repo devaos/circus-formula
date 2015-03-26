@@ -1,0 +1,28 @@
+{#- ######################################################################
+ # Define Watcher
+ ###################################################################### -#}
+
+{%- set config = salt['pillar.get']('circus:watcher:'+watcher, {}) -%}
+
+[watcher:{{ watcher }}]
+{%- for name, value in config.iteritems() %}
+{%- if name == 'env' %}{#- skip this key, we use it below #}
+{%- elif name == 'hooks' or name == 'stderr_stream' or name == 'stdout_stream' %}
+{%- for name2, value2 in value.iteritems() %}
+{{ name }}.{{ name2 }} = {{ value2 }}
+{%- endfor %}{# each name.* sub-item #}
+{%- else %}
+{{ name }} = {{ value }}
+{%- endif %}
+{%- endfor %}{# each watcher config item #}
+
+{#- ----------------------------------------------------------------------
+ # Define watcher-specific environment variables
+ ----------------------------------------------------------------------- #}
+{%- if config.get('env', False) %}
+
+[env:{{ watcher }}]
+{%- for name, value in config.get('env', {}).iteritems() %}
+{{ name }} = {{ value }}
+{%- endfor %}{# watcher env config items #}
+{%- endif %}

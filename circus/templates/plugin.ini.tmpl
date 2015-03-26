@@ -1,0 +1,10 @@
+{#- ######################################################################
+ # Define Plugin
+ ###################################################################### -#}
+
+{%- set config = salt['pillar.get']('circus:plugin:'+plugin, {}) -%}
+
+[plugin:{{ plugin }}]
+{%- for name, value in config.iteritems() %}
+{{ name }} = {{ value }}
+{%- endfor %}{# each plugin config item #}

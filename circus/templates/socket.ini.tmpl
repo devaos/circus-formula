@@ -1,0 +1,10 @@
+{#- ######################################################################
+ # Define Socket
+ ###################################################################### -#}
+
+{%- set config = salt['pillar.get']('circus:socket:'+socket, {}) -%}
+
+[socket:{{ socket }}]
+{%- for name, value in config.iteritems() %}
+{{ name }} = {{ value }}
+{%- endfor %}{# each socket config item #}
