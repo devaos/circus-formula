@@ -32,3 +32,4 @@ circus:
     - require:
       - file: {{ circus.conf_dir }}/circus.ini
       - file: circus-init-script
+      - pip: circus
