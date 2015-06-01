@@ -14,6 +14,7 @@
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 DAEMON={{ circus.bin_dir }}/circusd
 DAEMON_OPTS={{ circus.conf_dir }}/circus.ini
+PIDFILE={{ circus.pid_file }}
 NAME=circusd
 DESC=circus
 
@@ -33,22 +34,36 @@ start() {
         # Set the ulimits
         ulimit $ULIMIT
     fi
-    start-stop-daemon --start --quiet --pidfile {{ circus.pid_file }} \
+    start-stop-daemon --start --quiet --pidfile $PIDFILE \
         --make-pidfile --background \
         --name $NAME --startas $DAEMON -- $DAEMON_OPTS || exit $?
-    echo "."
+    # Because we must start circus with the --background switch, start-stop-daemon
+    # has no idea if circus actually started.  Thus we check the pidfile to ensure
+    # that it really did start ok.
+    if [ -e $PIDFILE ]; then
+        # Must sleep a little to give circus time to start and possibly die
+        sleep 5
+        # Now check if circus is still running
+        found=$(ps -C $NAME -p $(cat $PIDFILE) | grep $NAME | wc -l)
+        if [ x$found = x1 ]; then
+            echo "."
+            return 0
+        fi
+    fi
+    echo "ERROR: Circus did not start" 1>&2
+    return 1
 }
 
 stop() {
     echo -n "Stopping $DESC: "
-    start-stop-daemon --stop --quiet --pidfile {{ circus.pid_file }} \
+    start-stop-daemon --stop --quiet --pidfile $PIDFILE \
         --retry {{ salt['pillar.get']('circus:service:max_shutdown_time', 10) }} \
         --name $NAME --startas $DAEMON --oknodo || exit 1
     echo "."
 }
 
 status() {
-    status_of_proc -p {{ circus.pid_file }} "$DAEMON" $NAME || return $?
+    status_of_proc -p $PIDFILE "$DAEMON" $NAME || return $?
     {{ circus.bin_dir }}/circusctl status || return $?
     return 0
 }
@@ -56,7 +71,7 @@ status() {
 
 case "$1" in
 	start)
-    	start ;;
+        start || exit $? ;;
 
 	stop)
 		stop ;;
@@ -65,7 +80,7 @@ case "$1" in
 		echo -n "Restarting $DESC: "
 		stop
 		sleep 1
-		start
+        start || exit $?
 		;;
 
 	reload|force-reload)
@@ -73,13 +88,13 @@ case "$1" in
 		if status; then
     		{{ circus.bin_dir }}/circusctl reloadconfig || exit $?
     	else
-    	    start
+            start || exit $?
     	fi
 		echo "."
 		;;
 
 	status)
-	    status || exit $?
+        status || exit $?
 		;;
 
 	*)
