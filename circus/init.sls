@@ -5,6 +5,7 @@ include:
   - circus.plugin
   - circus.socket
   - circus.watcher
+  - circus.logging
 
 circus-dependencies:
   pkg.installed:
