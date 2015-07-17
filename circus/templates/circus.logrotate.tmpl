@@ -1,0 +1,11 @@
+{%- from "circus/ini.yaml" import ini with context -%}
+{%- set circus_ini = salt['pillar.get']('circus:ini', default=ini, merge=True) -%}
+{{ circus_ini.logoutput }} {
+  daily
+  missingok
+  rotate 7
+  compress
+  delaycompress
+  copytruncate
+  notifempty
+}

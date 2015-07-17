@@ -24,9 +24,9 @@ Options are based directly on the
 [Circus Configuration File Specification](http://circus.readthedocs.org/en/latest/for-ops/configuration/)
 and are current as of 0.11.1 (March 2015).
 
-## Bare Minimum Config
+## Minimal Config
 
-At the very least you must specify a pillar such as the following to launch `my_program` via Circus.
+You must specify a pillar such as the following to launch `my_program` via Circus.
 
 ```yaml
 circus:
@@ -35,9 +35,7 @@ circus:
       cmd: /path/to/my_program
 ```
 
-Every other configuration option is totally optional.  Default values are documented by Circus, see the
-[configuration docs](http://circus.readthedocs.org/en/latest/for-ops/configuration/)
-for more info.
+Every other configuration option is totally optional.  For more information see [Circus configuration docs](http://circus.readthedocs.org/en/latest/for-ops/configuration/).
 
 ## `circus:ini`
 
@@ -62,7 +60,7 @@ loglevel = DEBUG
 
 ## `circus:env`
 
-Global environment variables to be set for all watchers.
+Set global environment variables for all watchers.
 
 #### Example pillar
 
@@ -85,16 +83,16 @@ TASTY = lettuce
 
 This contains configuration specific to running the circus service on the system.
 
-Currently supported options:
+Supported options:
 
 ### `max_shutdown_time`
 
-The maximum amount of time to wait (in seconds) for circus to shut down
+The amount of time to wait (in seconds) for circus to shut down
 after having sent a `SIGTERM` before we give up on it and send it a `SIGKILL`.
 
-As usual on Unix, `SIGKILL` causes the application to absolutely shut down, and likely causes data loss.
+As usual on Unix, `SIGKILL` causes the application to shut down, and can cause data loss.
 
-This is used during system shutdown when we're trying to stop the service, and also during any restarts
+Used during system shutdown when we're trying to stop the service, and also during any restarts
 you may invoke via `/etc/init.d/circus restart`.
 
 #### Example pillar
@@ -107,7 +105,7 @@ circus:
 
 ## `circus:plugin`
 
-List all plugins to be loaded during startup and reload.
+List all plugins loaded during startup and reload.
 
 #### Example pillar
 
@@ -155,12 +153,8 @@ port = 8080
 
 ## `circus:watcher`
 
-List all watchers that Circus should start.
+List all watchers that Circus should start. All keys except `env` directly relate to a Circus configuration directive. Use `env` to set environment variables for a specific watcher.
 
-There is a special setting `circus:watcher:*:env` which is a dict containing environment variables
-that should be set for this watcher only.
-
-With the exception of the `env` key, all other keys directly relate to a Circus configuration directive.
 
 #### Example pillar
 
